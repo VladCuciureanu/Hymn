@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Hymn.Application\Hymn.Application.csproj" />
+        <ProjectReference Include="..\Hymn.Domain\Hymn.Domain.csproj" />
+        <ProjectReference Include="..\Hymn.Infra.CrossCutting.Identity\Hymn.Infra.CrossCutting.Identity.csproj" />
+        <ProjectReference Include="..\Hymn.Infra.Data\Hymn.Infra.Data.csproj" />
+    </ItemGroup>
+    
+</Project>
