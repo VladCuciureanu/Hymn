@@ -1,0 +1,27 @@
+enum UserRole {
+  Member
+  Admin
+}
+
+model Tablature {
+  id    String @id @default(cuid())
+  title String
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  username     String     @unique
+  passwordHash String
+  roles        UserRole[] @default([Member])
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
