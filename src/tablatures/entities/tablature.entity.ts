@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Tablature } from '@prisma/client';
-import { IsString } from 'class-validator';
+import { IsAlphanumeric, IsString, MinLength } from 'class-validator';
 
 export class TablatureEntity implements Tablature {
   @ApiProperty({
@@ -10,8 +10,11 @@ export class TablatureEntity implements Tablature {
   id: string;
 
   @ApiProperty({
+    example: 'Lorem Ipsum',
     description: "The tablature's title",
   })
   @IsString()
+  @IsAlphanumeric()
+  @MinLength(4)
   title: string;
 }

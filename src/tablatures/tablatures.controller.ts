@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseFilters,
+  Req,
 } from '@nestjs/common';
 import { TablaturesService } from './tablatures.service';
 import { CreateTablatureDto } from './dto/create-tablature.dto';
@@ -23,6 +24,7 @@ import {
 import { TablatureEntity } from './entities/tablature.entity';
 import { PrismaClientExceptionFilter } from '../prisma/exceptions/prisma-client-exception.filter';
 import { Public } from '../auth/decorators/public.decorator';
+import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 
 @ApiTags('tablatures')
 @Controller('tablatures')
@@ -31,11 +33,18 @@ export class TablaturesController {
   constructor(private readonly tablaturesService: TablaturesService) {}
 
   @Post()
+  @Public()
   @ApiOperation({ summary: 'Create tablature' })
   @ApiCreatedResponse({ type: TablatureEntity })
   @ApiBadRequestResponse()
-  create(@Body() createTablatureDto: CreateTablatureDto) {
-    return this.tablaturesService.create(createTablatureDto);
+  create(
+    @Req() req: AuthenticatedRequest,
+    @Body() createTablatureDto: CreateTablatureDto,
+  ) {
+    return this.tablaturesService.create({
+      dto: createTablatureDto,
+      accountability: req.user,
+    });
   }
 
   @Get()
@@ -51,8 +60,11 @@ export class TablaturesController {
   @ApiOperation({ summary: 'Find tablature by id' })
   @ApiOkResponse({ type: TablatureEntity })
   @ApiNotFoundResponse()
-  findOne(@Param('id') id: string) {
-    return this.tablaturesService.findOne(id);
+  findOne(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+    return this.tablaturesService.findOne({
+      id,
+      accountability: req.user,
+    });
   }
 
   @Patch(':id')
@@ -62,10 +74,15 @@ export class TablaturesController {
   @ApiUnauthorizedResponse()
   @ApiBadRequestResponse()
   update(
+    @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() updateTablatureDto: UpdateTablatureDto,
   ) {
-    return this.tablaturesService.update(id, updateTablatureDto);
+    return this.tablaturesService.update({
+      id,
+      dto: updateTablatureDto,
+      accountability: req.user,
+    });
   }
 
   @Delete(':id')
@@ -73,7 +90,7 @@ export class TablaturesController {
   @ApiOkResponse({ type: TablatureEntity })
   @ApiNotFoundResponse()
   @ApiUnauthorizedResponse()
-  remove(@Param('id') id: string) {
-    return this.tablaturesService.remove(id);
+  remove(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+    return this.tablaturesService.remove({ id, accountability: req.user });
   }
 }

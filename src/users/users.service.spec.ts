@@ -2,27 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PrismaService } from '../prisma/prisma.service';
-import { User, UserRole } from '@prisma/client';
-import { REDACTED_STRING } from '../constants';
+import { mockAdminUser, mockMemberUser, REDACTED_STRING } from '../constants';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { getError } from '../utils/get-error';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
-
-const mockMemberUser: User = {
-  id: 'mockIdMember',
-  email: 'mockEmailMember',
-  username: 'mockUsernameMember',
-  passwordHash: 'mockPasswordHash',
-  roles: [UserRole.Member],
-};
-
-const mockAdminUser: User = {
-  id: 'mockIdAdmin',
-  email: 'mockEmailAdmin',
-  username: 'mockUsernameAdmin',
-  passwordHash: 'mockPasswordHash',
-  roles: [UserRole.Member, UserRole.Admin],
-};
 
 describe('UsersService', () => {
   let service: UsersService;
