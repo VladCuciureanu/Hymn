@@ -8,7 +8,7 @@ import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { verify } from 'argon2';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { REDACTED_STRING } from './auth.constants';
+import { REDACTED_STRING } from '../constants';
 
 @Injectable()
 export class AuthService {

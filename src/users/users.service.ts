@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import argon2 from 'argon2';
 import { User, UserRole } from '@prisma/client';
 import { UserEntity } from './entities/user.entity';
-import { REDACTED_STRING } from '../auth/auth.constants';
+import { REDACTED_STRING } from '../constants';
 
 @Injectable()
 export class UsersService {

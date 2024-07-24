@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User, UserRole } from '@prisma/client';
-import { REDACTED_STRING } from '../../auth/auth.constants';
+import { REDACTED_STRING } from '../../constants';
 import { IsAlphanumeric, IsEmail, IsString, MinLength } from 'class-validator';
 
 export class UserEntity implements User {
