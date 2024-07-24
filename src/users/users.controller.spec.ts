@@ -5,6 +5,8 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { UserEntity } from './entities/user.entity';
 import { UserRole } from '@prisma/client';
 import { AuthenticatedRequest } from '../auth/interfaces/authenticated-request.interface';
+import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
+import { CreateUserDto } from './dto/create-user.dto';
 
 const mockUser: UserEntity = {
   id: 'mockId',
@@ -20,56 +22,60 @@ const mockAuthenticatedRequest: AuthenticatedRequest = {
 
 describe('UsersController', () => {
   let controller: UsersController;
-  let service: UsersService;
+  let service: DeepMockProxy<UsersService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
       providers: [UsersService],
       imports: [PrismaModule],
-    }).compile();
+    })
+      .overrideProvider(UsersService)
+      .useValue(mockDeep(UsersService))
+      .compile();
 
     controller = module.get<UsersController>(UsersController);
-    service = module.get<UsersService>(UsersService);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+    service = module.get<DeepMockProxy<UsersService>>(UsersService);
   });
 
   describe('create', () => {
     it('should create a user', async () => {
-      jest.spyOn(service, 'create').mockResolvedValue(mockUser);
+      jest.spyOn(service, 'create').mockResolvedValueOnce(mockUser);
 
-      const user = await controller.create({
-        email: 'test@email.com',
+      const dto: CreateUserDto = {
+        email: mockUser.email,
+        username: mockUser.username,
         password: 'password',
-        username: 'testusername',
-      });
+      };
 
+      const user = await controller.create(dto);
+
+      expect(service.create).toHaveBeenCalledWith(dto);
       expect(user).toBeDefined();
     });
   });
 
   describe('findAll', () => {
     it('should return an array of users', async () => {
-      jest.spyOn(service, 'findAll').mockResolvedValue([mockUser]);
+      jest.spyOn(service, 'findAll').mockResolvedValueOnce([mockUser]);
 
       const users = await controller.findAll(mockAuthenticatedRequest);
 
+      expect(service.findAll).toHaveBeenCalled();
       expect(users).toEqual([mockUser]);
     });
   });
 
   describe('findOne', () => {
     it('should return a user', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(mockUser);
+      jest.spyOn(service, 'findOne').mockResolvedValueOnce(mockUser);
 
       const user = await controller.findOne(
         mockAuthenticatedRequest,
         mockUser.id,
       );
 
+      expect(service.findOne).toHaveBeenCalled();
       expect(user).toEqual(mockUser);
     });
   });
@@ -77,7 +83,7 @@ describe('UsersController', () => {
   describe('update', () => {
     it('should update a user', async () => {
       const updatedUser = { ...mockUser, email: 'newEmail' };
-      jest.spyOn(service, 'update').mockResolvedValue(updatedUser);
+      jest.spyOn(service, 'update').mockResolvedValueOnce(updatedUser);
 
       const user = await controller.update(
         mockAuthenticatedRequest,
@@ -87,19 +93,21 @@ describe('UsersController', () => {
         },
       );
 
+      expect(service.update).toHaveBeenCalled();
       expect(user).toEqual(updatedUser);
     });
   });
 
   describe('remove', () => {
     it('should remove a user', async () => {
-      jest.spyOn(service, 'remove').mockResolvedValue(mockUser);
+      jest.spyOn(service, 'remove').mockResolvedValueOnce(mockUser);
 
       const user = await controller.remove(
         mockAuthenticatedRequest,
         mockUser.id,
       );
 
+      expect(service.remove).toHaveBeenCalled();
       expect(user).toEqual(mockUser);
     });
   });
