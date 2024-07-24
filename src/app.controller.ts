@@ -7,5 +7,5 @@ export class AppController {
   @Get('health')
   @Public()
   @ApiOkResponse({ description: 'API is healthy' })
-  getHello() {}
+  getHealthStatus() {}
 }

@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import argon2 from 'argon2';
 import { User, UserRole } from '@prisma/client';
 import { UserEntity } from './entities/user.entity';
-import { REDACTED_STRING } from 'src/auth/auth.constants';
+import { REDACTED_STRING } from '../auth/auth.constants';
 
 @Injectable()
 export class UsersService {

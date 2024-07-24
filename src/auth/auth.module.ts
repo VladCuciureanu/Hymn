@@ -4,7 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { JWT_SIGNING_KEY } from './auth.constants';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({

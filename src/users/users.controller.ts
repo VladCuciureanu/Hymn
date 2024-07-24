@@ -21,8 +21,8 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
-import { PrismaClientExceptionFilter } from 'src/prisma/exceptions/prisma-client-exception.filter';
-import { Public } from 'src/auth/decorators/public.decorator';
+import { PrismaClientExceptionFilter } from '../prisma/exceptions/prisma-client-exception.filter';
+import { Public } from '../auth/decorators/public.decorator';
 
 @ApiTags('users')
 @Controller('users')
