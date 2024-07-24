@@ -1,20 +1,9 @@
-import {
-  IsAlphanumeric,
-  IsEmail,
-  IsString,
-  IsStrongPassword,
-  MinLength,
-} from 'class-validator';
+import { ApiProperty, PickType } from '@nestjs/swagger';
+import { IsStrongPassword } from 'class-validator';
+import { UserEntity } from '../entities/user.entity';
 
-export class CreateUserDto {
-  @IsEmail()
-  readonly email: string;
-
-  @IsString()
-  @IsAlphanumeric()
-  @MinLength(4)
-  readonly username: string;
-
+export class CreateUserDto extends PickType(UserEntity, ['email', 'username']) {
+  @ApiProperty()
   @IsStrongPassword()
   readonly password: string;
 }

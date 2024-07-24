@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User, UserRole } from '@prisma/client';
 import { REDACTED_STRING } from '../../auth/auth.constants';
+import { IsAlphanumeric, IsEmail, IsString, MinLength } from 'class-validator';
 
 export class UserEntity implements User {
   @ApiProperty({
@@ -13,12 +14,16 @@ export class UserEntity implements User {
     example: REDACTED_STRING,
     description: "The user's email address",
   })
+  @IsEmail()
   email: string;
 
   @ApiProperty({
     example: 'johndoe',
     description: "The user's handle name",
   })
+  @IsString()
+  @IsAlphanumeric()
+  @MinLength(4)
   username: string;
 
   @ApiProperty({
