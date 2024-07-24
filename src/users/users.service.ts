@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import argon2 from 'argon2';
+import { hash } from 'argon2';
 import { User, UserRole } from '@prisma/client';
 import { UserEntity } from './entities/user.entity';
 import { REDACTED_STRING } from '../constants';
@@ -12,62 +16,99 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserEntity | null> {
-    const passwordHash = await argon2.hash(createUserDto.password);
+    const { password, ...restOfDto } = createUserDto;
+    const passwordHash = await hash(password);
     const entity = await this.prisma.user.create({
-      data: { ...createUserDto, passwordHash },
+      data: { ...restOfDto, passwordHash },
     });
-    const censoredEntity = censorUser(entity);
+    const censoredEntity = censorUser(entity, entity);
     return censoredEntity;
   }
 
-  async findAll(): Promise<UserEntity[]> {
+  async findAll(props: { accountability?: UserEntity }): Promise<UserEntity[]> {
     const entities = await this.prisma.user.findMany();
 
-    const censoredEntities = entities.map((entity) => censorUser(entity));
+    const censoredEntities = entities.map((entity) =>
+      censorUser(entity, props.accountability),
+    );
 
     return censoredEntities;
   }
 
-  async findOne(id: string): Promise<UserEntity | null> {
-    const entity = await this.prisma.user.findUnique({ where: { id: id } });
-    if (!entity) return null;
-    const censoredEntity = censorUser(entity);
+  async findOne(props: {
+    id: string;
+    accountability?: UserEntity;
+  }): Promise<UserEntity | null> {
+    const entity = await this.prisma.user.findUnique({
+      where: { id: props.id },
+    });
+    if (!entity) throw new NotFoundException();
+    const censoredEntity = censorUser(entity, props.accountability);
     return censoredEntity;
   }
 
-  async findOneByEmail(email: string): Promise<UserEntity | null> {
+  async findOneByEmail(props: {
+    email: string;
+    accountability?: UserEntity;
+  }): Promise<UserEntity | null> {
     const entity = await this.prisma.user.findUnique({
-      where: { email: email },
+      where: { email: props.email },
     });
     return entity;
   }
 
-  async update(
-    id: string,
-    updateUserDto: UpdateUserDto,
-  ): Promise<UserEntity | null> {
+  async update(props: {
+    id: string;
+    dto: UpdateUserDto;
+    accountability?: UserEntity;
+  }): Promise<UserEntity | null> {
     let passwordHash: string | undefined;
-    if (updateUserDto.password) {
-      passwordHash = await argon2.hash(updateUserDto.password);
+    const { password, ...restOfDto } = props.dto;
+    if (password) {
+      passwordHash = await hash(password);
     }
-    const entity = await this.prisma.user.update({
-      where: { id: id },
-      data: { ...updateUserDto, passwordHash },
-    });
-    if (!entity) return null;
-    const censoredEntity = censorUser(entity);
+
+    if (
+      props.accountability?.id !== props.id &&
+      !props.accountability?.roles.includes(UserRole.Admin)
+    ) {
+      throw new UnauthorizedException();
+    }
+
+    const entity = await this.prisma.user
+      .update({
+        where: { id: props.id },
+        data: { ...restOfDto, passwordHash },
+      })
+      .catch(() => null);
+    if (!entity)
+      throw new NotFoundException(`Can't find user with id ${props.id}`);
+    const censoredEntity = censorUser(entity, props.accountability);
     return censoredEntity;
   }
 
-  async remove(id: string): Promise<UserEntity | null> {
-    const entity = await this.prisma.user.delete({ where: { id: id } });
-    if (!entity) return null;
-    const censoredEntity = censorUser(entity);
+  async remove(props: {
+    id: string;
+    accountability?: UserEntity;
+  }): Promise<UserEntity | null> {
+    if (
+      props.accountability?.id !== props.id &&
+      !props.accountability?.roles.includes(UserRole.Admin)
+    ) {
+      throw new UnauthorizedException();
+    }
+
+    const entity = await this.prisma.user
+      .delete({ where: { id: props.id } })
+      .catch(() => null);
+    if (!entity)
+      throw new NotFoundException(`Can't find user with id ${props.id}`);
+    const censoredEntity = censorUser(entity, props.accountability);
     return censoredEntity;
   }
 }
 
-function censorUser(user: User, accountability?: User): UserEntity {
+function censorUser(user: User, accountability?: UserEntity): UserEntity {
   const censoredUser: UserEntity = {
     ...user,
     passwordHash: REDACTED_STRING,

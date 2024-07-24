@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseFilters,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -23,6 +24,7 @@ import {
 import { UserEntity } from './entities/user.entity';
 import { PrismaClientExceptionFilter } from '../prisma/exceptions/prisma-client-exception.filter';
 import { Public } from '../auth/decorators/public.decorator';
+import { AuthenticatedRequest } from 'src/auth/interfaces/authenticated-request.interface';
 
 @ApiTags('users')
 @Controller('users')
@@ -43,8 +45,8 @@ export class UsersController {
   @Public()
   @ApiOperation({ summary: 'Find multiple users' })
   @ApiOkResponse({ type: [UserEntity] })
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Req() req: AuthenticatedRequest) {
+    return this.usersService.findAll({ accountability: req.user });
   }
 
   @Get(':id')
@@ -52,8 +54,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Find user by id' })
   @ApiOkResponse({ type: UserEntity })
   @ApiNotFoundResponse()
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  findOne(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+    return this.usersService.findOne({ id, accountability: req.user });
   }
 
   @Patch(':id')
@@ -62,8 +64,16 @@ export class UsersController {
   @ApiNotFoundResponse()
   @ApiUnauthorizedResponse()
   @ApiBadRequestResponse()
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  update(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.usersService.update({
+      id,
+      dto: updateUserDto,
+      accountability: req.user,
+    });
   }
 
   @Delete(':id')
@@ -71,7 +81,7 @@ export class UsersController {
   @ApiOkResponse({ type: UserEntity })
   @ApiNotFoundResponse()
   @ApiUnauthorizedResponse()
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  remove(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+    return this.usersService.remove({ id, accountability: req.user });
   }
 }
