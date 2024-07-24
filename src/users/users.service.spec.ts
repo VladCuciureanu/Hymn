@@ -6,6 +6,7 @@ import { User, UserRole } from '@prisma/client';
 import { REDACTED_STRING } from '../constants';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { getError } from '../utils/get-error';
+import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 
 const mockMemberUser: User = {
   id: 'mockIdMember',
@@ -25,20 +26,23 @@ const mockAdminUser: User = {
 
 describe('UsersService', () => {
   let service: UsersService;
-  let db: PrismaService;
+  let db: DeepMockProxy<PrismaService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [UsersService],
       imports: [PrismaModule],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue(mockDeep<PrismaService>())
+      .compile();
 
     service = module.get<UsersService>(UsersService);
-    db = module.get<PrismaService>(PrismaService);
+    db = module.get<DeepMockProxy<PrismaService>>(PrismaService);
   });
 
   it('should create a user', async () => {
-    jest.spyOn(db.user, 'create').mockResolvedValue(mockMemberUser);
+    jest.spyOn(db.user, 'create').mockResolvedValueOnce(mockMemberUser);
 
     const user = await service.create({
       email: mockMemberUser.email,
@@ -52,7 +56,7 @@ describe('UsersService', () => {
   it('should return a member an array of censored users', async () => {
     jest
       .spyOn(db.user, 'findMany')
-      .mockResolvedValue([mockMemberUser, mockAdminUser]);
+      .mockResolvedValueOnce([mockMemberUser, mockAdminUser]);
 
     const users = await service.findAll({ accountability: mockMemberUser });
 
@@ -69,7 +73,7 @@ describe('UsersService', () => {
   it('should return an admin an array of uncensored users', async () => {
     jest
       .spyOn(db.user, 'findMany')
-      .mockResolvedValue([mockMemberUser, mockAdminUser]);
+      .mockResolvedValueOnce([mockMemberUser, mockAdminUser]);
 
     const users = await service.findAll({ accountability: mockAdminUser });
 
@@ -80,7 +84,7 @@ describe('UsersService', () => {
   });
 
   it('should return an anonymous user a censored user', async () => {
-    jest.spyOn(db.user, 'findUnique').mockResolvedValue(mockAdminUser);
+    jest.spyOn(db.user, 'findUnique').mockResolvedValueOnce(mockAdminUser);
 
     const user = await service.findOne({
       id: mockAdminUser.id,
@@ -94,7 +98,7 @@ describe('UsersService', () => {
   });
 
   it('should return a member a censored user', async () => {
-    jest.spyOn(db.user, 'findUnique').mockResolvedValue(mockAdminUser);
+    jest.spyOn(db.user, 'findUnique').mockResolvedValueOnce(mockAdminUser);
 
     const user = await service.findOne({
       id: mockAdminUser.id,
@@ -109,7 +113,7 @@ describe('UsersService', () => {
   });
 
   it('should return an admin an uncensored user', async () => {
-    jest.spyOn(db.user, 'findUnique').mockResolvedValue(mockMemberUser);
+    jest.spyOn(db.user, 'findUnique').mockResolvedValueOnce(mockMemberUser);
 
     const user = await service.findOne({
       id: mockMemberUser.id,
@@ -123,14 +127,11 @@ describe('UsersService', () => {
   });
 
   it("shouldn't return a non-existent user", async () => {
-    jest.spyOn(db.user, 'findUnique').withImplementation(
-      () => null as any,
-      () => {},
-    );
+    jest.spyOn(db.user, 'findUnique').mockResolvedValueOnce(null);
 
     const error = await getError(async () => {
       await service.findOne({
-        id: mockMemberUser.id,
+        id: mockAdminUser.id,
       });
     });
 
@@ -142,7 +143,7 @@ describe('UsersService', () => {
 
     jest
       .spyOn(db.user, 'update')
-      .mockResolvedValue({ ...mockMemberUser, email: newMockEmail });
+      .mockResolvedValueOnce({ ...mockMemberUser, email: newMockEmail });
 
     const user = await service.update({
       id: mockMemberUser.id,
@@ -161,7 +162,7 @@ describe('UsersService', () => {
     const error = await getError(async () => {
       await service.update({
         id: mockAdminUser.id,
-        dto: {},
+        dto: { email: '' },
         accountability: mockMemberUser,
       });
     });
@@ -170,15 +171,14 @@ describe('UsersService', () => {
   });
 
   it("shouldn't update non-existent users", async () => {
-    jest.spyOn(db.user, 'update').withImplementation(
-      () => null as any,
-      () => {},
-    );
+    jest
+      .spyOn(db.user, 'update')
+      .withImplementation((async () => null) as any, () => {});
 
     const error = await getError(async () => {
       await service.update({
         id: mockMemberUser.id,
-        dto: {},
+        dto: { email: '' },
         accountability: mockMemberUser,
       });
     });
@@ -191,7 +191,7 @@ describe('UsersService', () => {
 
     jest
       .spyOn(db.user, 'update')
-      .mockResolvedValue({ ...mockMemberUser, email: newMockEmail });
+      .mockResolvedValueOnce({ ...mockMemberUser, email: newMockEmail });
 
     const user = await service.update({
       id: mockMemberUser.id,
@@ -207,7 +207,7 @@ describe('UsersService', () => {
   });
 
   it("should delete a user's account", async () => {
-    jest.spyOn(db.user, 'delete').mockResolvedValue(mockMemberUser);
+    jest.spyOn(db.user, 'delete').mockResolvedValueOnce(mockMemberUser);
 
     const user = await service.remove({
       id: mockMemberUser.id,
@@ -245,7 +245,7 @@ describe('UsersService', () => {
   });
 
   it("should delete another user's account if admin", async () => {
-    jest.spyOn(db.user, 'delete').mockResolvedValue(mockMemberUser);
+    jest.spyOn(db.user, 'delete').mockResolvedValueOnce(mockMemberUser);
 
     const user = await service.remove({
       id: mockMemberUser.id,

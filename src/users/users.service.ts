@@ -75,12 +75,11 @@ export class UsersService {
       throw new UnauthorizedException();
     }
 
-    const entity = await this.prisma.user
-      .update({
-        where: { id: props.id },
-        data: { ...restOfDto, passwordHash },
-      })
-      .catch(() => null);
+    const entity = await this.prisma.user.update({
+      where: { id: props.id },
+      data: { ...restOfDto, passwordHash },
+    });
+
     if (!entity)
       throw new NotFoundException(`Can't find user with id ${props.id}`);
     const censoredEntity = censorUser(entity, props.accountability);
@@ -98,9 +97,8 @@ export class UsersService {
       throw new UnauthorizedException();
     }
 
-    const entity = await this.prisma.user
-      .delete({ where: { id: props.id } })
-      .catch(() => null);
+    const entity = await this.prisma.user.delete({ where: { id: props.id } });
+
     if (!entity)
       throw new NotFoundException(`Can't find user with id ${props.id}`);
     const censoredEntity = censorUser(entity, props.accountability);
