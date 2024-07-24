@@ -1,7 +1,8 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { User, UserRole } from '@prisma/client';
+import { REDACTED_STRING } from 'src/auth/auth.constants';
 
-export class UserEntityWithPasswordHash implements User {
+export class UserEntity implements User {
   @ApiProperty({
     example: 'clyx5in0z0000128km7qeprls',
     description: "The user's unique identifier",
@@ -9,7 +10,7 @@ export class UserEntityWithPasswordHash implements User {
   id: string;
 
   @ApiProperty({
-    example: 'john@doe.com',
+    example: REDACTED_STRING,
     description: "The user's email address",
   })
   email: string;
@@ -20,6 +21,10 @@ export class UserEntityWithPasswordHash implements User {
   })
   username: string;
 
+  @ApiProperty({
+    example: REDACTED_STRING,
+    description: "The user's salted and hashed password",
+  })
   passwordHash: string;
 
   @ApiProperty({
@@ -28,7 +33,3 @@ export class UserEntityWithPasswordHash implements User {
   })
   roles: UserRole[];
 }
-
-export class UserEntity extends OmitType(UserEntityWithPasswordHash, [
-  'passwordHash',
-]) {}

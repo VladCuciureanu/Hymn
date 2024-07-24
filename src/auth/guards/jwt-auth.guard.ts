@@ -13,13 +13,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     super();
   }
 
-  handleRequest(
-    _err: any,
-    user: any,
-    _info: any,
-    context: ExecutionContext,
-    _status?: any,
-  ) {
+  handleRequest(_err: any, user: any, _info: any, context: ExecutionContext) {
     const allowAny = this.reflector.get<string[]>(
       IS_PUBLIC_KEY,
       context.getHandler(),

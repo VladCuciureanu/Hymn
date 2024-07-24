@@ -8,7 +8,7 @@ import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { verify } from 'argon2';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { deletePropertyFromObject } from 'src/utils/delete-property-from-object';
+import { REDACTED_STRING } from './auth.constants';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +34,7 @@ export class AuthService {
     }
 
     const payload: JwtPayload = {
-      user: deletePropertyFromObject(user, 'passwordHash'),
+      user: { ...user, passwordHash: REDACTED_STRING },
       sub: user.id,
     };
 

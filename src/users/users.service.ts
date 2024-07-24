@@ -3,9 +3,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import argon2 from 'argon2';
-import { User } from '@prisma/client';
-import { UserEntity, UserEntityWithPasswordHash } from './entities/user.entity';
-import { deletePropertyFromObject } from 'src/utils/delete-property-from-object';
+import { User, UserRole } from '@prisma/client';
+import { UserEntity } from './entities/user.entity';
+import { REDACTED_STRING } from 'src/auth/auth.constants';
 
 @Injectable()
 export class UsersService {
@@ -23,7 +23,7 @@ export class UsersService {
   async findAll(): Promise<UserEntity[]> {
     const entities = await this.prisma.user.findMany();
 
-    const censoredEntities = entities.map(censorUser);
+    const censoredEntities = entities.map((entity) => censorUser(entity));
 
     return censoredEntities;
   }
@@ -35,9 +35,7 @@ export class UsersService {
     return censoredEntity;
   }
 
-  async findOneByEmail(
-    email: string,
-  ): Promise<UserEntityWithPasswordHash | null> {
+  async findOneByEmail(email: string): Promise<UserEntity | null> {
     const entity = await this.prisma.user.findUnique({
       where: { email: email },
     });
@@ -69,6 +67,15 @@ export class UsersService {
   }
 }
 
-function censorUser(user: User): UserEntity {
-  return deletePropertyFromObject(user, 'passwordHash');
+function censorUser(user: User, accountability?: User): UserEntity {
+  const censoredUser: UserEntity = {
+    ...user,
+    passwordHash: REDACTED_STRING,
+    email:
+      accountability?.id === user.id ||
+      accountability?.roles.includes(UserRole.Admin)
+        ? user.email
+        : REDACTED_STRING,
+  };
+  return censoredUser;
 }
