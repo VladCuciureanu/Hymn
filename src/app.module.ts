@@ -5,9 +5,10 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { APP_GUARD, Reflector } from '@nestjs/core';
+import { TablaturesModule } from './tablatures/tablatures.module';
 
 @Module({
-  imports: [UsersModule, PrismaModule, AuthModule],
+  imports: [AuthModule, PrismaModule, TablaturesModule, UsersModule],
   controllers: [AppController],
   providers: [
     {
