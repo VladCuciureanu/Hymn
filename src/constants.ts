@@ -7,14 +7,22 @@ export const mockMemberUser: User = {
   id: 'mockIdMember',
   email: 'mockEmailMember',
   username: 'mockUsernameMember',
-  passwordHash: 'mockPasswordHash',
+  passwordHash:
+    '$argon2d$v=19$m=16,t=2,p=1$MXg5a1VoSGJkREszcks3Zw$I+8VewLVep2i68Op4EoJGA',
   roles: [UserRole.Member],
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
+
+export const mockUserPassword = 'mockPassword';
 
 export const mockAdminUser: User = {
   id: 'mockIdAdmin',
   email: 'mockEmailAdmin',
   username: 'mockUsernameAdmin',
-  passwordHash: 'mockPasswordHash',
+  passwordHash:
+    '$argon2d$v=19$m=16,t=2,p=1$MXg5a1VoSGJkREszcks3Zw$I+8VewLVep2i68Op4EoJGA',
   roles: [UserRole.Member, UserRole.Admin],
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };

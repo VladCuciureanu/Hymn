@@ -15,7 +15,7 @@ import { REDACTED_STRING } from '../constants';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserEntity | null> {
+  async create(createUserDto: CreateUserDto): Promise<UserEntity> {
     const { password, ...restOfDto } = createUserDto;
     const passwordHash = await hash(password);
     const entity = await this.prisma.user.create({
