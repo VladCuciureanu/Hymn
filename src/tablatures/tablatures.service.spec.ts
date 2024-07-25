@@ -3,14 +3,20 @@ import { TablaturesService } from './tablatures.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PrismaService } from '../prisma/prisma.service';
 import { mockAdminUser, mockMemberUser } from '../constants';
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { getError } from '../utils/get-error';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { TablatureEntity } from './entities/tablature.entity';
+import { TablatureStatus } from '@prisma/client';
 
 const mockTablature: TablatureEntity = {
   id: 'mockId',
   title: 'mockTitle',
+  status: TablatureStatus.Draft,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  createdById: '',
+  updatedById: '',
 };
 
 describe('TablaturesService', () => {
@@ -30,41 +36,27 @@ describe('TablaturesService', () => {
     db = module.get<DeepMockProxy<PrismaService>>(PrismaService);
   });
 
-  it('should create a tablature if admin', async () => {
+  it('should create a tablature', async () => {
     jest.spyOn(db.tablature, 'create').mockResolvedValueOnce(mockTablature);
 
     const tablature = await service.create({
       dto: { title: mockTablature.title },
-      accountability: mockAdminUser,
+      accountability: mockMemberUser,
     });
 
     expect(tablature).toEqual(mockTablature);
   });
 
-  it("shouldn't create a tablature if not admin", async () => {
-    jest.spyOn(db.tablature, 'create').mockResolvedValueOnce(mockTablature);
-
-    const error = await getError(
-      async () =>
-        await service.create({
-          dto: { title: mockTablature.title },
-          accountability: mockMemberUser,
-        }),
-    );
-
-    expect(error).toBeInstanceOf(UnauthorizedException);
-  });
-
   it('should return an array of tablatures', async () => {
     jest.spyOn(db.tablature, 'findMany').mockResolvedValueOnce([mockTablature]);
 
-    const tablatures = await service.findAll();
+    const tablatures = await service.findAll({ accountability: undefined });
 
     expect(tablatures).toEqual([mockTablature]);
   });
 
   it('should return a tablature', async () => {
-    jest.spyOn(db.tablature, 'findUnique').mockResolvedValueOnce(mockTablature);
+    jest.spyOn(db.tablature, 'findFirst').mockResolvedValueOnce(mockTablature);
 
     const tablature = await service.findOne({
       id: mockTablature.id,
@@ -74,7 +66,7 @@ describe('TablaturesService', () => {
   });
 
   it("shouldn't return a non-existent tablature", async () => {
-    jest.spyOn(db.tablature, 'findUnique').mockResolvedValueOnce(null);
+    jest.spyOn(db.tablature, 'findFirst').mockResolvedValueOnce(null);
 
     const error = await getError(async () => {
       await service.findOne({
@@ -85,7 +77,7 @@ describe('TablaturesService', () => {
     expect(error).toBeInstanceOf(NotFoundException);
   });
 
-  it('should update tablature if admin', async () => {
+  it('should update tablature', async () => {
     jest.spyOn(db.tablature, 'update').mockResolvedValueOnce({
       ...mockTablature,
       title: mockTablature.title + '1',
@@ -96,7 +88,7 @@ describe('TablaturesService', () => {
       dto: {
         title: mockTablature.title + '1',
       },
-      accountability: mockAdminUser,
+      accountability: mockMemberUser,
     });
 
     expect(tablature).toEqual({
@@ -105,21 +97,7 @@ describe('TablaturesService', () => {
     });
   });
 
-  it("shouldn't update tablature if not admin", async () => {
-    jest.spyOn(db.tablature, 'update').mockResolvedValueOnce(mockTablature);
-
-    const error = await getError(async () => {
-      await service.update({
-        id: mockTablature.id,
-        dto: { title: mockTablature.title + '1' },
-        accountability: mockMemberUser,
-      });
-    });
-
-    expect(error).toBeInstanceOf(UnauthorizedException);
-  });
-
-  it("shouldn't update non-existent tablatures", async () => {
+  it("shouldn't update a non-existent tablature", async () => {
     jest.spyOn(db.tablature, 'update').withImplementation(
       () => null as any,
       () => {},
@@ -129,38 +107,25 @@ describe('TablaturesService', () => {
       await service.update({
         id: mockTablature.id,
         dto: { title: mockTablature.title + '1' },
-        accountability: mockAdminUser,
+        accountability: mockMemberUser,
       });
     });
 
     expect(error).toBeInstanceOf(NotFoundException);
   });
 
-  it('should delete tablature if admin', async () => {
+  it('should delete tablature', async () => {
     jest.spyOn(db.tablature, 'delete').mockResolvedValueOnce(mockTablature);
 
     const tablature = await service.remove({
       id: mockTablature.id,
-      accountability: mockAdminUser,
+      accountability: mockMemberUser,
     });
 
     expect(tablature).toEqual(mockTablature);
   });
 
-  it("shouldn't delete tablature if not admin", async () => {
-    jest.spyOn(db.tablature, 'delete').mockResolvedValueOnce(mockTablature);
-
-    const error = await getError(async () => {
-      await service.remove({
-        id: mockTablature.id,
-        accountability: mockMemberUser,
-      });
-    });
-
-    expect(error).toBeInstanceOf(UnauthorizedException);
-  });
-
-  it("shouldn't delete non-existent tablatures", async () => {
+  it("shouldn't delete a non-existent tablatures", async () => {
     jest.spyOn(db.tablature, 'delete').withImplementation(
       () => null as any,
       () => {},

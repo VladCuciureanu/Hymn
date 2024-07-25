@@ -33,7 +33,6 @@ export class TablaturesController {
   constructor(private readonly tablaturesService: TablaturesService) {}
 
   @Post()
-  @Public()
   @ApiOperation({ summary: 'Create tablature' })
   @ApiCreatedResponse({ type: TablatureEntity })
   @ApiBadRequestResponse()
@@ -43,7 +42,7 @@ export class TablaturesController {
   ) {
     return this.tablaturesService.create({
       dto: createTablatureDto,
-      accountability: req.user,
+      accountability: req.user!,
     });
   }
 
@@ -51,8 +50,8 @@ export class TablaturesController {
   @Public()
   @ApiOperation({ summary: 'Find multiple tablatures' })
   @ApiOkResponse({ type: [TablatureEntity] })
-  findAll() {
-    return this.tablaturesService.findAll();
+  findAll(@Req() req: AuthenticatedRequest) {
+    return this.tablaturesService.findAll({ accountability: req.user });
   }
 
   @Get(':id')
@@ -81,7 +80,7 @@ export class TablaturesController {
     return this.tablaturesService.update({
       id,
       dto: updateTablatureDto,
-      accountability: req.user,
+      accountability: req.user!,
     });
   }
 
@@ -91,6 +90,6 @@ export class TablaturesController {
   @ApiNotFoundResponse()
   @ApiUnauthorizedResponse()
   remove(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
-    return this.tablaturesService.remove({ id, accountability: req.user });
+    return this.tablaturesService.remove({ id, accountability: req.user! });
   }
 }

@@ -7,10 +7,16 @@ import { AuthenticatedRequest } from '../auth/interfaces/authenticated-request.i
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { CreateTablatureDto } from './dto/create-tablature.dto';
 import { mockMemberUser } from '../constants';
+import { TablatureStatus } from '@prisma/client';
 
 const mockTablature: TablatureEntity = {
   id: 'mockId',
   title: 'mockEmail',
+  status: TablatureStatus.Draft,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  createdById: '',
+  updatedById: '',
 };
 
 const mockAuthenticatedRequest: AuthenticatedRequest = {
@@ -54,7 +60,7 @@ describe('TablaturesController', () => {
     it('should return an array of tablatures', async () => {
       jest.spyOn(service, 'findAll').mockResolvedValueOnce([mockTablature]);
 
-      const tablatures = await controller.findAll();
+      const tablatures = await controller.findAll(mockAuthenticatedRequest);
 
       expect(service.findAll).toHaveBeenCalled();
       expect(tablatures).toEqual([mockTablature]);

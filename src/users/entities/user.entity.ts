@@ -37,4 +37,16 @@ export class UserEntity implements User {
     description: "The user's roles",
   })
   roles: UserRole[];
+
+  @ApiProperty({
+    example: new Date(),
+    description: "The user's creation date",
+  })
+  createdAt: Date;
+
+  @ApiProperty({
+    example: new Date(),
+    description: "The user's last update date",
+  })
+  updatedAt: Date;
 }
