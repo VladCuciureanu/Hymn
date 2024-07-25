@@ -1,0 +1,45 @@
+enum UserRole {
+  Member
+  Admin
+}
+
+enum TablatureStatus {
+  Draft
+  Published
+}
+
+model Tablature {
+  id        String          @id @default(cuid())
+  title     String
+  status    TablatureStatus @default(Draft)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  createdBy   User   @relation("CreatedTablatures", fields: [createdById], references: [id])
+  createdById String
+  updatedBy   User   @relation("UpdatedTablatures", fields: [updatedById], references: [id])
+  updatedById String
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  username     String     @unique
+  passwordHash String
+  roles        UserRole[] @default([Member])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  createdTablatures Tablature[] @relation("CreatedTablatures")
+  updatedTablatures Tablature[] @relation("UpdatedTablatures")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
